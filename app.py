@@ -8,11 +8,44 @@ from dotenv import load_dotenv
 
 dotenv_loaded = load_dotenv(".env")
 
-client = Groq(
-    api_key=os.environ["GROQ_API_KEY"]
-)
+import os
+
+api_key = os.getenv("GROQ_API_KEY")
+
+if not api_key:
+    st.error("Missing GROQ_API_KEY in Streamlit Secrets")
+    st.stop()
+
+client = Groq(api_key=api_key)
 
 st.set_page_config(page_title="Obas Lab AI", layout="wide")
+
+st.markdown(
+    """
+    <style>
+    .main {
+        background-color: #f6f8fb;
+    }
+    h1, h2, h3 {
+        color: #1f2a44;
+    }
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 20px;
+    }
+    .stTabs [data-baseweb="tab"] {
+        height: 45px;
+        font-size: 15px;
+        font-weight: 600;
+    }
+    .block-container {
+        padding-top: 2rem;
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 st.markdown("""
     <style>
@@ -50,17 +83,22 @@ if "patients" not in st.session_state:
     }
 
 # SIDEBAR
-st.sidebar.header("👤 Fake Patients")
+st.sidebar.title("🧑‍⚕️ Patient Panel")
+
+st.sidebar.markdown("### Active Patient")
 
 patient_id = st.sidebar.selectbox(
-    "Select Patient",
+    "Select Patient Record",
     options=list(st.session_state.patients.keys()),
     format_func=lambda x: st.session_state.patients[x]["name"]
 )
 
 patient = st.session_state.patients[patient_id]
 
-st.sidebar.write("DOB:", patient["dob"])
+st.sidebar.markdown("---")
+st.sidebar.markdown(f"**DOB:** {patient['dob']}")
+st.sidebar.markdown("**Status:** 🟢 Active Visit")
+st.sidebar.markdown("**Record Type:** Synthetic (No PHI)")
 
 def generate_soap(text):
     response = client.chat.completions.create(
@@ -97,58 +135,62 @@ Plan:
     return response.choices[0].message.content
 
 # TABS
-tab1, tab2 = st.tabs(["📋 SOAP Charting", "💊 Medication Log"])
+tab1, tab2 = st.tabs([
+    "📋 Clinical Documentation",
+    "💊 Orders & Workflow"
+])
 
 # TAB 1
 with tab1:
-    st.subheader("Live Visit Notes")
+    st.subheader("Clinical Encounter Notes")
 
-    transcript = st.text_area("Type notes here", height=250)
+    transcript = st.text_area(
+        "Enter or paste provider-patient interaction notes",
+        height=220,
+        placeholder="e.g. Patient presents with..."
+    )
 
-    if st.button("Generate SOAP Note"):
+    col1, col2 = st.columns(2)
+
+    with col1:
+        generate = st.button("⚡ Generate SOAP Note")
+
+    if generate:
         if transcript:
-            st.toast("Generating SOAP note... 🧠")
+            st.toast("Processing clinical documentation...")
 
-            with st.spinner("AI is analyzing clinical notes..."):
+            with st.spinner("AI structuring SOAP note..."):
                 st.session_state.soap = generate_soap(transcript)
-
         else:
-            st.warning("Add notes first")
+            st.warning("No clinical notes detected")
 
-if st.session_state.soap:
-    st.subheader("Generated SOAP Note")
+    if st.session_state.soap:
+        st.markdown("### 📄 Structured SOAP Output")
 
-    st.text_area(
-        "Review before use",
-        value=st.session_state.soap,
-        height=350
-    )
+        st.text_area(
+    label="SOAP Output (Review & Edit)",
+    value=st.session_state.soap,
+    height=350,
+    key="soap_output_box"
+)
 
-    st.success("SOAP note ready for clinician review")    
-
-    st.text_area(
-        "Review before use",
-        value=st.session_state.soap,
-        height=350
-    )
-
-    st.success("SOAP note ready for clinician review")
+        st.success("Ready for clinician review")
 
 # TAB 2
 with tab2:
+    st.subheader("Medication & Workflow Orders")
 
-    st.subheader("Medication Workflow Simulation")
+    med = st.text_input("Enter medication / clinical action order")
 
-    med = st.text_input("Medication / Follow-up Action")
+    col1, col2 = st.columns(2)
 
-    if st.button("Send Workflow"):
+    with col1:
+        send = st.button("📤 Submit Order")
 
+    if send:
         if med:
+            st.success(f"Order logged for {patient['name']}")
 
-            st.success(f"Workflow prepared for {patient['name']}")
-
-            st.info("Simulation only — no patient data stored or transmitted.")
-
+            st.info("Simulated workflow only — no external systems connected")
         else:
-
-            st.warning("Enter medication workflow details first")
+            st.warning("Please enter an order before submitting")
