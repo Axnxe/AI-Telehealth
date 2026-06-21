@@ -2,3 +2,4 @@ streamlit
 faker
 python-dotenv
 groq
+fpdf
