@@ -8,8 +8,6 @@ from dotenv import load_dotenv
 
 dotenv_loaded = load_dotenv(".env")
 
-import os
-
 from fpdf import FPDF
 
 api_key = os.getenv("GROQ_API_KEY")
@@ -119,13 +117,6 @@ col3.metric("Weight", f"{random.randint(140,220)} lbs")
 col4.metric("BMI", f"{random.randint(22,35)}")
 
 
-col1, col2, col3, col4 = st.columns(4)
-
-col1.metric("BP", f"{random.randint(110,140)}/{random.randint(70,90)}")
-col2.metric("HR", f"{random.randint(60,100)} bpm")
-col3.metric("Weight", f"{random.randint(140,220)} lbs")
-col4.metric("BMI", f"{random.randint(22,35)}")
-
 st.sidebar.markdown("---")
 st.sidebar.markdown(f"**DOB:** {patient['dob']}")
 st.sidebar.markdown("**Status:** 🟢 Active Visit")
@@ -203,7 +194,7 @@ with tab1:
             st.warning("No clinical notes detected")
 
     if st.session_state.soap:
-    st.markdown("## 📄 SOAP Clinical Note")
+        st.markdown("## 📝 Generated SOAP Note")
 
     col1, col2 = st.columns(2)
 
