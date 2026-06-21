@@ -8,6 +8,26 @@ from dotenv import load_dotenv
 
 dotenv_loaded = load_dotenv(".env")
 
+# ---------------- LOGIN SYSTEM ----------------
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+
+def login():
+    st.title("🏥 Obas Lab Secure Login")
+    user = st.text_input("Username")
+    pw = st.text_input("Password", type="password")
+
+    if st.button("Login"):
+        if user == "admin" and pw == "admin":
+            st.session_state.authenticated = True
+            st.rerun()
+        else:
+            st.error("Invalid credentials")
+
+if not st.session_state.authenticated:
+    login()
+    st.stop()
+
 from fpdf import FPDF
 
 api_key = os.getenv("GROQ_API_KEY")
@@ -106,15 +126,6 @@ patient = st.session_state.patients[patient_id]
 st.info(f"Currently viewing: {patient['name']} | DOB: {patient['dob']}")
 
 import random
-
-st.markdown("### 📊 Patient Vitals (Simulated)")
-
-col1, col2, col3, col4 = st.columns(4)
-
-col1.metric("BP", f"{random.randint(110,140)}/{random.randint(70,90)}")
-col2.metric("HR", f"{random.randint(60,100)} bpm")
-col3.metric("Weight", f"{random.randint(140,220)} lbs")
-col4.metric("BMI", f"{random.randint(22,35)}")
 
 
 st.sidebar.markdown("---")
